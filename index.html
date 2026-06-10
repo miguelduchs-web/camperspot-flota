@@ -1,1 +1,500 @@
+bash
+
+cat /mnt/user-data/outputs/flota_small.html
+Salida
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camper Spot · Flota</title>
+<style>
+  :root{--green:#354b00;--green-mid:#4a6800;--green-dim:rgba(53,75,0,0.08);--green-dim2:rgba(53,75,0,0.15);--bg:#ffffff;--surface:#f7f8f4;--surface2:#eef0e8;--border:rgba(53,75,0,0.12);--border2:rgba(53,75,0,0.22);--text:#1a1f0a;--muted:#6b7550;--pending-bg:#fff8e6;--pending:#8a6200;--done-bg:#e8f5e3;--done:#2d6e1e;--radius:10px;--radius-sm:6px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;min-height:100vh}
+  .shell{display:flex;min-height:100vh}
+  .sidebar{width:230px;background:var(--green);display:flex;flex-direction:column;flex-shrink:0}
+  .main{flex:1;overflow-x:hidden;background:var(--bg)}
+  .sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:12px}
+  .sidebar-logo{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0}
+  .brand-name{font-size:13px;font-weight:700;letter-spacing:.06em;color:#fff;text-transform:uppercase;line-height:1.3}
+  .brand-sub{font-size:10px;color:rgba(255,255,255,.55);margin-top:2px}
+  .sidebar-section{padding:16px 12px 4px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:rgba(255,255,255,.65);transition:all .15s;margin:1px 6px}
+  .nav-item:hover{background:rgba(255,255,255,.1);color:#fff}
+  .nav-item.active{background:rgba(255,255,255,.18);color:#fff;font-weight:600}
+  .nav-badge{margin-left:auto;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--pending-bg);color:var(--pending)}
+  .sidebar-footer{margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1)}
+  .sync-info{font-size:11px;color:rgba(255,255,255,.5);text-align:center;display:flex;align-items:center;justify-content:center;gap:5px}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:#5dcaa5;flex-shrink:0}
+  .sync-dot.offline{background:#fac775}
+  .sync-dot.saving{background:#85b7eb;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .page-header{padding:28px 28px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border)}
+  .page-title{font-size:22px;font-weight:700;color:var(--text)}
+  .page-sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .view{display:none;padding:20px 28px 40px}
+  .view.active{display:block}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:20px 0}
+  .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+  .metric-label{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .metric-val{font-size:28px;font-weight:700;line-height:1}
+  .mv-neutral{color:var(--green)}.mv-pending{color:var(--pending)}.mv-done{color:var(--done)}
+  .fleet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:4px}
+  .vcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s}
+  .vcard:hover{border-color:var(--green);box-shadow:0 2px 12px rgba(53,75,0,.08)}
+  .vcard-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .vcard-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .vcard-name{font-size:14px;font-weight:700;color:var(--text)}
+  .vcard-type{font-size:11px;color:var(--muted)}
+  .vcard-pills{display:flex;gap:6px;flex-wrap:wrap}
+  .pill{font-size:11px;padding:2px 9px;border-radius:99px;font-weight:500}
+  .pill-pending{background:var(--pending-bg);color:var(--pending)}
+  .pill-done{background:var(--done-bg);color:var(--done)}
+  .pill-neutral{background:var(--surface2);color:var(--muted)}
+  .list-header{display:flex;align-items:center;margin:16px 0 12px;gap:8px;flex-wrap:wrap}
+  .list-filters{display:flex;gap:6px;flex-wrap:wrap}
+  .filter-btn{font-size:12px;padding:5px 14px;border-radius:99px;border:1.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;font-weight:500}
+  .filter-btn:hover{border-color:var(--green);color:var(--green)}
+  .filter-btn.active{border-color:var(--green);color:var(--green);background:var(--green-dim2);font-weight:700}
+  .record{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;transition:border-color .15s}
+  .record:hover{border-color:var(--green-mid)}
+  .record-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .record-title{font-size:14px;font-weight:600;color:var(--text)}
+  .record-meta{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+  .record-meta span{font-size:12px;color:var(--muted)}
+  .record-notes{font-size:12px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-style:italic}
+  .record-photo{margin-top:10px;max-width:260px}
+  .record-photo img{width:100%;display:block;border-radius:var(--radius-sm);cursor:pointer;border:1px solid var(--border)}
+  .record-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .btn-xs{font-size:11px;padding:4px 11px;border-radius:var(--radius-sm);border:1.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;font-weight:500}
+  .btn-xs:hover{background:var(--surface2);color:var(--text)}
+  .btn-xs.done-btn{border-color:var(--done);color:var(--done)}
+  .btn-xs.done-btn:hover{background:var(--done-bg)}
+  .btn-xs.del-btn{border-color:#e8b4b4;color:#c0392b}
+  .btn-xs.del-btn:hover{background:#fdf0f0}
+  .status{font-size:11px;padding:3px 10px;border-radius:99px;white-space:nowrap;font-weight:600}
+  .s-pendiente{background:var(--pending-bg);color:var(--pending)}
+  .s-completado{background:var(--done-bg);color:var(--done)}
+  .form-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:640px}
+  .form-row{display:grid;gap:12px;margin-bottom:12px}
+  .form-row.cols2{grid-template-columns:1fr 1fr}
+  .form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+  .form-field{display:flex;flex-direction:column;gap:5px}
+  .form-field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .form-field input,.form-field select,.form-field textarea{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:8px 10px;outline:none;width:100%;transition:border-color .15s;font-family:inherit}
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--green);background:#fff}
+  .form-field textarea{resize:vertical;min-height:70px}
+  .form-field select option{background:#fff}
+  .chip-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .chip{background:var(--surface);border:1.5px solid var(--border2);border-radius:99px;color:var(--muted);font-size:12px;padding:5px 13px;cursor:pointer;transition:all .15s;font-family:inherit;font-weight:500}
+  .chip:hover{border-color:var(--green);color:var(--green-mid)}
+  .chip.selected{background:var(--green-dim2);border-color:var(--green);color:var(--green);font-weight:700}
+  .optional-toggle{font-size:12px;color:var(--green-mid);cursor:pointer;margin:4px 0 12px;display:inline-flex;align-items:center;gap:4px;font-weight:600}
+  .optional-fields{display:none}
+  .optional-fields.open{display:block}
+  .photo-upload{border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:14px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--surface)}
+  .photo-upload:hover{border-color:var(--green)}
+  .photo-upload-label{font-size:12px;color:var(--muted)}
+  .photo-preview{margin-top:8px;display:none}
+  .photo-preview img{width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius-sm);display:block}
+  .photo-clear{font-size:11px;color:#c0392b;cursor:pointer;margin-top:4px;display:none;font-weight:500}
+  .btn-primary{background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s}
+  .btn-primary:hover{opacity:.88}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+  .btn-secondary{background:transparent;color:var(--muted);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:9px 16px;font-size:13px;cursor:pointer;transition:all .15s;font-weight:500}
+  .btn-secondary:hover{background:var(--surface2);color:var(--text)}
+  .form-actions{display:flex;gap:8px;margin-top:20px;align-items:center}
+  .saving-msg{font-size:12px;color:var(--muted);display:none}
+  .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:90vh;border-radius:var(--radius);object-fit:contain}
+  .lightbox-close{position:fixed;top:16px;right:20px;font-size:28px;color:#fff;cursor:pointer}
+  .empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:13px}
+  .empty-icon{font-size:36px;margin-bottom:10px;opacity:.35}
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--green);color:#fff;padding:10px 22px;border-radius:var(--radius);font-size:13px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;z-index:999}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.error{background:#c0392b}
+  .mobile-nav{display:none;background:var(--green);border-top:2px solid rgba(255,255,255,.15);position:fixed;bottom:0;left:0;right:0;z-index:100;padding:6px 0 10px}
+  .mobile-nav-inner{display:flex;justify-content:space-around}
+  .mn-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:rgba(255,255,255,.55);cursor:pointer;padding:4px 12px;border-radius:var(--radius-sm);font-weight:500}
+  .mn-item.active{color:#fff}
+  .mn-icon{font-size:20px}
+  @media(max-width:680px){
+    .sidebar{display:none}.mobile-nav{display:block}.main{padding-bottom:70px}
+    .page-header{padding:16px 16px 16px}.view{padding:16px 16px 32px}
+    .form-row.cols2,.form-row.cols3{grid-template-columns:1fr}
+    .metrics{grid-template-columns:repeat(2,1fr)}.fleet-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close">✕</span>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<div class="shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <img class="sidebar-logo" id="sidebar-logo" src="" alt="Camper Spot">
+      <div><div class="brand-name">Camper Spot</div><div class="brand-sub">Gestión de flota</div></div>
+    </div>
+    <div style="padding:8px;flex:1;overflow-y:auto">
+      <div class="sidebar-section">Vistas</div>
+      <div class="nav-item active" onclick="nav('fleet')" id="nav-fleet"><span>🚐</span> Todos los vehículos</div>
+      <div class="nav-item" onclick="nav('records')" id="nav-records">
+        <span>📋</span> Registros
+        <span class="nav-badge" id="badge-pending" style="display:none"></span>
+      </div>
+      <div class="sidebar-section" style="margin-top:8px">Acciones</div>
+      <div class="nav-item" onclick="nav('add')" id="nav-add"><span>✚</span> Nuevo registro</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sync-info"><div class="sync-dot" id="sync-dot"></div><span id="sync-text">Conectando...</span></div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="view active" id="view-fleet">
+      <div class="page-header">
+        <div><div class="page-title">Mi flota</div><div class="page-sub">Resumen general de todos los vehículos</div></div>
+        <button class="btn-primary" onclick="nav('add')">+ Nuevo registro</button>
+      </div>
+      <div class="metrics" id="fleet-metrics"></div>
+      <div class="fleet-grid" id="fleet-grid"></div>
+    </div>
+
+    <div class="view" id="view-records">
+      <div class="page-header">
+        <div><div class="page-title" id="records-title">Registros</div><div class="page-sub" id="records-sub">Todos los vehículos</div></div>
+        <button class="btn-primary" onclick="nav('add')">+ Agregar</button>
+      </div>
+      <div class="list-header">
+        <div class="list-filters">
+          <button class="filter-btn active" onclick="setFilter('todos')">Todos</button>
+          <button class="filter-btn" onclick="setFilter('Pendiente')">Pendientes</button>
+          <button class="filter-btn" onclick="setFilter('Completado')">Completados</button>
+        </div>
+      </div>
+      <div id="records-list"></div>
+    </div>
+
+    <div class="view" id="view-add">
+      <div class="page-header">
+        <div><div class="page-title">Nuevo registro</div><div class="page-sub">Reparación, mantención o revisión</div></div>
+      </div>
+      <div style="margin-top:20px">
+        <div class="form-wrap">
+          <div class="form-row cols2">
+            <div class="form-field">
+              <label>Vehículo *</label>
+              <select id="f-vehicle">
+                <option value="">Selecciona...</option>
+                <option>MH SFCX19</option><option>MH SFCX20</option><option>MH SPBD28</option>
+                <option>MH SPBD29</option><option>MH SDWY74</option><option>CR SKY536</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Estado *</label>
+              <select id="f-status">
+                <option value="Pendiente" selected>🟡 Pendiente</option>
+                <option value="Completado">🟢 Completado</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Descripción *</label>
+              <textarea id="f-desc" placeholder="Ej: Cambio de aceite, correa distribución, revisión frenos..."></textarea>
+            </div>
+          </div>
+          <div class="form-row cols2" style="margin-bottom:4px">
+            <div class="form-field">
+              <label>Tipo de trabajo</label>
+              <div class="chip-group" id="chips-type">
+                <button type="button" class="chip" onclick="selectChip('type','Reparación')">Reparación</button>
+                <button type="button" class="chip" onclick="selectChip('type','Mantención preventiva')">Mantención preventiva</button>
+                <button type="button" class="chip" onclick="selectChip('type','Renovación de permiso')">Renovación de permiso</button>
+              </div>
+            </div>
+            <div class="form-field">
+              <label>Categoría</label>
+              <div class="chip-group" id="chips-cat">
+                <button type="button" class="chip" onclick="selectChip('cat','Mecánico (vehículo)')">🔧 Mecánico</button>
+                <button type="button" class="chip" onclick="selectChip('cat','Carrocería (casa)')">🏠 Carrocería</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-field">
+              <label>Foto (opcional)</label>
+              <div class="photo-upload" onclick="document.getElementById('f-photo').click()">
+                <input type="file" id="f-photo" accept="image/*" capture="environment" onchange="previewPhoto(event)" style="display:none">
+                <div class="photo-upload-label">📷 Toca para tomar foto o elegir de la galería</div>
+              </div>
+              <div class="photo-preview" id="photo-preview"><img id="photo-preview-img" src="" alt=""></div>
+              <span class="photo-clear" id="photo-clear" onclick="clearPhoto()">✕ Quitar foto</span>
+            </div>
+          </div>
+          <span class="optional-toggle" onclick="toggleOptional()"><span id="opt-arrow">▸</span> Agregar más detalles</span>
+          <div class="optional-fields" id="optional-fields">
+            <div class="form-row cols3">
+              <div class="form-field"><label>Km actuales</label><input type="number" id="f-km" placeholder="Ej: 85000"></div>
+              <div class="form-field"><label>Fecha</label><input type="date" id="f-date"></div>
+              <div class="form-field"><label>Taller / Responsable</label><input type="text" id="f-shop" placeholder="Ej: Taller Don Pepe"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>Notas (repuestos, garantía, presupuesto...)</label>
+                <textarea id="f-notes" placeholder="Información adicional..." style="min-height:50px"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="saveRecord()" id="save-btn">Guardar registro</button>
+            <button class="btn-secondary" onclick="nav('fleet')">Cancelar</button>
+            <span class="saving-msg" id="saving-msg">Guardando...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <div class="mn-item active" onclick="nav('fleet')" id="mn-fleet"><div class="mn-icon">🚐</div>Flota</div>
+    <div class="mn-item" onclick="nav('records')" id="mn-records"><div class="mn-icon">📋</div>Registros</div>
+    <div class="mn-item" onclick="nav('add')" id="mn-add"><div class="mn-icon">✚</div>Agregar</div>
+  </div>
+</nav>
+
+<!-- Firebase SDK (compat - no module needed, works with onclick) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyA-I0lTflQAC-f4qXS18MbGUX1TlEAFIxE",
+  authDomain: "camperspot-flota.firebaseapp.com",
+  projectId: "camperspot-flota",
+  storageBucket: "camperspot-flota.firebasestorage.app",
+  messagingSenderId: "82317751682",
+  appId: "1:82317751682:web:b13b45fdb6c68a20cfcb9b"
+});
+const db = firebase.firestore();
+
+document.getElementById('sidebar-logo').src = 'https://raw.githubusercontent.com/miguelduchs-web/camperspot-flota/main/logo.png';
+
+let records = [];
+let currentFilter = 'todos', currentVehicle = null;
+let selectedType = '', selectedCat = '';
+let currentPhoto = null;
+
+const VEHICLES = ['MH SFCX19','MH SFCX20','MH SPBD28','MH SPBD29','MH SDWY74','CR SKY536'];
+const VCOLORS  = ['#e24b4a','#7f77dd','#639922','#5ba4cf','#185fa5','#ba7517'];
+const VTYPES   = ['Motorhome','Motorhome','Motorhome','Motorhome','Motorhome','Casa Rodante'];
+function vcolor(v){const i=VEHICLES.indexOf(v);return i>=0?VCOLORS[i]:'#888';}
+function vtype(v){const i=VEHICLES.indexOf(v);return i>=0?VTYPES[i]:'';}
+
+function setSyncStatus(state){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-text');
+  dot.className='sync-dot'+(state==='saving'?' saving':state==='offline'?' offline':'');
+  txt.textContent=state==='online'?'Sincronizado':state==='saving'?'Guardando...':'Sin conexión';
+}
+
+// Realtime listener
+db.collection('records').orderBy('createdAt','desc').onSnapshot(snap=>{
+  records=snap.docs.map(d=>({id:d.id,...d.data()}));
+  setSyncStatus('online');
+  const active=document.querySelector('.view.active');
+  if(active&&active.id==='view-fleet')renderFleet();
+  if(active&&active.id==='view-records')renderRecords();
+},err=>{setSyncStatus('offline');console.error(err);});
+
+function nav(view,vehicleId){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  ['fleet','records','add'].forEach(k=>{
+    const s=document.getElementById('nav-'+k);
+    const m=document.getElementById('mn-'+k);
+    if(s)s.classList.toggle('active',k===view);
+    if(m)m.classList.toggle('active',k===view);
+  });
+  if(view==='records'){currentVehicle=vehicleId||null;renderRecords();}
+  if(view==='fleet')renderFleet();
+  if(view==='add'){document.getElementById('f-date').value=today();if(vehicleId)document.getElementById('f-vehicle').value=vehicleId;}
+  window.scrollTo(0,0);
+}
+
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(d){if(!d)return'';if(d&&d.toDate)d=d.toDate().toISOString().split('T')[0];const[y,m,dd]=String(d).split('-');return dd+'/'+m+'/'+y;}
+function fmtKm(k){return k?Number(k).toLocaleString('es-CL')+' km':'';}
+
+function selectChip(group,value){
+  if(group==='type'){
+    selectedType=selectedType===value?'':value;
+    document.querySelectorAll('#chips-type .chip').forEach(c=>c.classList.toggle('selected',c.textContent.trim()===value&&selectedType===value));
+  }else{
+    selectedCat=selectedCat===value?'':value;
+    document.querySelectorAll('#chips-cat .chip').forEach(c=>{
+      const match=value.startsWith('Mecánico')?'🔧 Mecánico':'🏠 Carrocería';
+      c.classList.toggle('selected',c.textContent.trim()===match&&selectedCat===value);
+    });
+  }
+}
+
+function previewPhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  const img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{
+    const MAX=800;let w=img.width,h=img.height;
+    if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    currentPhoto=canvas.toDataURL('image/jpeg',0.7);
+    URL.revokeObjectURL(url);
+    document.getElementById('photo-preview-img').src=currentPhoto;
+    document.getElementById('photo-preview').style.display='block';
+    document.getElementById('photo-clear').style.display='block';
+    document.querySelector('.photo-upload-label').textContent='📷 Foto cargada — toca para cambiar';
+  };img.src=url;
+}
+function clearPhoto(){
+  currentPhoto=null;document.getElementById('f-photo').value='';
+  document.getElementById('photo-preview').style.display='none';
+  document.getElementById('photo-clear').style.display='none';
+  document.querySelector('.photo-upload-label').textContent='📷 Toca para tomar foto o elegir de la galería';
+}
+function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+
+function renderFleet(){
+  const pending=records.filter(r=>r.status==='Pendiente').length;
+  const done=records.filter(r=>r.status==='Completado').length;
+  const bp=document.getElementById('badge-pending');
+  if(pending>0){bp.textContent=pending;bp.style.display='';}else bp.style.display='none';
+  document.getElementById('fleet-metrics').innerHTML=
+    '<div class="metric"><div class="metric-label">Total registros</div><div class="metric-val mv-neutral">'+records.length+'</div></div>'+
+    '<div class="metric"><div class="metric-label">Pendientes</div><div class="metric-val mv-pending">'+pending+'</div></div>'+
+    '<div class="metric"><div class="metric-label">Completados</div><div class="metric-val mv-done">'+done+'</div></div>';
+  document.getElementById('fleet-grid').innerHTML=VEHICLES.map(v=>{
+    const vr=records.filter(r=>r.vehicle===v);
+    const vp=vr.filter(r=>r.status==='Pendiente').length;
+    const vd=vr.filter(r=>r.status==='Completado').length;
+    const pills=[
+      vp?'<span class="pill pill-pending">'+vp+' pendiente'+(vp>1?'s':'')+'</span>':'',
+      vd?'<span class="pill pill-done">'+vd+' completado'+(vd>1?'s':'')+'</span>':'',
+      !vr.length?'<span class="pill pill-neutral">Sin registros</span>':'',
+    ].filter(Boolean).join('');
+    return '<div class="vcard" onclick="nav(\'records\',\''+v+'\')">'+
+      '<div class="vcard-top"><div class="vcard-dot" style="background:'+vcolor(v)+'"></div>'+
+      '<div><div class="vcard-name">'+v+'</div><div class="vcard-type">'+vtype(v)+'</div></div></div>'+
+      '<div class="vcard-pills">'+pills+'</div></div>';
+  }).join('');
+}
+
+function setFilter(f){
+  currentFilter=f;
+  const labels={'todos':'Todos','Pendiente':'Pendientes','Completado':'Completados'};
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.textContent===labels[f]));
+  renderRecords();
+}
+
+function renderRecords(){
+  let list=currentVehicle?records.filter(r=>r.vehicle===currentVehicle):[...records];
+  document.getElementById('records-title').textContent=currentVehicle?currentVehicle+' · Registros':'Registros';
+  document.getElementById('records-sub').textContent=currentVehicle?vtype(currentVehicle):'Todos los vehículos';
+  if(currentFilter!=='todos')list=list.filter(r=>r.status===currentFilter);
+  list.sort((a,b)=>(a.status==='Pendiente'?0:1)-(b.status==='Pendiente'?0:1));
+  const el=document.getElementById('records-list');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Sin registros'+(currentFilter!=='todos'?' con este estado':'')+'</div>';return;}
+  el.innerHTML=list.map(r=>{
+    const meta=[
+      r.date?'<span>📅 '+fmtDate(r.date)+'</span>':'',
+      r.km?'<span>🛣 '+fmtKm(r.km)+'</span>':'',
+      r.shop?'<span>🔧 '+r.shop+'</span>':'',
+      r.type?'<span>'+r.type+'</span>':'',
+      r.cat?'<span>'+(r.cat.startsWith('Mecánico')?'🔧 Mecánico':'🏠 Carrocería')+'</span>':'',
+    ].filter(Boolean).join('');
+    const vPill=!currentVehicle?'<span style="display:inline-flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:'+vcolor(r.vehicle)+';display:inline-block"></span><span style="font-size:11px;color:var(--muted)">'+r.vehicle+'</span></span><br>':'';
+    const photo=r.photo?'<div class="record-photo"><img src="'+r.photo+'" alt="foto" onclick="openLightbox(this.src)"></div>':'';
+    const doneBtn=r.status==='Pendiente'?'<button class="btn-xs done-btn" onclick="markDone(\''+r.id+'\')">✓ Completado</button>':'';
+    return '<div class="record"><div class="record-top"><div style="flex:1">'+vPill+
+      '<div class="record-title">'+r.desc+'</div>'+
+      (meta?'<div class="record-meta">'+meta+'</div>':'')+
+      (r.notes?'<div class="record-notes">'+r.notes+'</div>':'')+photo+'</div>'+
+      '<span class="status s-'+r.status.toLowerCase()+'">'+r.status+'</span></div>'+
+      '<div class="record-actions">'+doneBtn+'<button class="btn-xs del-btn" onclick="deleteRecord(\''+r.id+'\')">Eliminar</button></div></div>';
+  }).join('');
+}
+
+function toggleOptional(){
+  const el=document.getElementById('optional-fields');
+  const open=el.classList.toggle('open');
+  document.getElementById('opt-arrow').textContent=open?'▾':'▸';
+}
+
+async function saveRecord(){
+  const vehicle=document.getElementById('f-vehicle').value;
+  const desc=document.getElementById('f-desc').value.trim();
+  const status=document.getElementById('f-status').value;
+  if(!vehicle){toast('Selecciona un vehículo',true);return;}
+  if(!desc){toast('Escribe una descripción',true);return;}
+  const btn=document.getElementById('save-btn');
+  const msg=document.getElementById('saving-msg');
+  btn.disabled=true;msg.style.display='block';
+  setSyncStatus('saving');
+  try{
+    await db.collection('records').add({
+      vehicle,desc,status,
+      type:selectedType,cat:selectedCat,
+      km:document.getElementById('f-km').value,
+      date:document.getElementById('f-date').value,
+      shop:document.getElementById('f-shop').value.trim(),
+      notes:document.getElementById('f-notes').value.trim(),
+      photo:currentPhoto||null,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    ['f-km','f-shop','f-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-vehicle').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-status').value='Pendiente';
+    document.getElementById('f-date').value=today();
+    selectedType='';selectedCat='';
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('optional-fields').classList.remove('open');
+    document.getElementById('opt-arrow').textContent='▸';
+    clearPhoto();
+    toast('Registro guardado ✓');
+    nav('fleet');
+  }catch(e){toast('Error al guardar',true);setSyncStatus('offline');console.error(e);}
+  finally{btn.disabled=false;msg.style.display='none';}
+}
+
+async function markDone(id){
+  try{await db.collection('records').doc(id).update({status:'Completado'});toast('Marcado como completado ✓');}
+  catch(e){toast('Error al actualizar',true);}
+}
+async function deleteRecord(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  try{await db.collection('records').doc(id).delete();toast('Registro eliminado');}
+  catch(e){toast('Error al eliminar',true);}
+}
+
+function toast(msg,error=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=error?'error':'';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+document.getElementById('f-date').value=today();
+renderFleet();
+</script>
+</body>
+</html>
 
