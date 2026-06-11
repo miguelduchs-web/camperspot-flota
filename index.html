@@ -37,9 +37,9 @@
   .metric-val{font-size:28px;font-weight:700;line-height:1}
   .mv-neutral{color:var(--green)}.mv-pending{color:var(--pending)}.mv-done{color:var(--done)}
   .fleet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:4px}
-  .vcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s}
+  .vcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .15s}
   .vcard:hover{border-color:var(--green);box-shadow:0 2px 12px rgba(53,75,0,.08)}
-  .vcard-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .vcard-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer}
   .vcard-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
   .vcard-name{font-size:14px;font-weight:700;color:var(--text)}
   .vcard-type{font-size:11px;color:var(--muted)}
@@ -48,6 +48,15 @@
   .pill-pending{background:var(--pending-bg);color:var(--pending)}
   .pill-done{background:var(--done-bg);color:var(--done)}
   .pill-neutral{background:var(--surface2);color:var(--muted)}
+  .vcard-miles{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .miles-field{display:flex;flex-direction:column;gap:3px}
+  .miles-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .miles-input{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:12px;padding:5px 8px;outline:none;width:100%;font-family:inherit;transition:border-color .15s}
+  .miles-input:focus{border-color:var(--green);background:#fff}
+  .miles-remaining{margin-top:8px;padding:6px 10px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;text-align:center}
+  .mr-ok{background:var(--done-bg);color:var(--done)}
+  .mr-warn{background:var(--pending-bg);color:var(--pending)}
+  .mr-urgent{background:#fcebeb;color:#c0392b}
   .list-header{display:flex;align-items:center;margin:16px 0 12px;gap:8px;flex-wrap:wrap}
   .list-filters{display:flex;gap:6px;flex-wrap:wrap}
   .filter-btn{font-size:12px;padding:5px 14px;border-radius:99px;border:1.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;font-weight:500}
@@ -130,7 +139,6 @@
   <span class="lightbox-close">✕</span>
   <img id="lightbox-img" src="" alt="">
 </div>
-
 <div class="shell">
   <nav class="sidebar">
     <div class="sidebar-brand">
@@ -151,7 +159,6 @@
       <div class="sync-info"><div class="sync-dot" id="sync-dot"></div><span id="sync-text">Conectando...</span></div>
     </div>
   </nav>
-
   <div class="main">
     <div class="view active" id="view-fleet">
       <div class="page-header">
@@ -161,7 +168,6 @@
       <div class="metrics" id="fleet-metrics"></div>
       <div class="fleet-grid" id="fleet-grid"></div>
     </div>
-
     <div class="view" id="view-records">
       <div class="page-header">
         <div><div class="page-title" id="records-title">Registros</div><div class="page-sub" id="records-sub">Todos los vehículos</div></div>
@@ -176,7 +182,6 @@
       </div>
       <div id="records-list"></div>
     </div>
-
     <div class="view" id="view-add">
       <div class="page-header">
         <div><div class="page-title">Nuevo registro</div><div class="page-sub">Reparación, mantención o revisión</div></div>
@@ -258,7 +263,6 @@
     </div>
   </div>
 </div>
-
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
     <div class="mn-item active" onclick="nav('fleet')" id="mn-fleet"><div class="mn-icon">🚐</div>Flota</div>
@@ -266,230 +270,48 @@
     <div class="mn-item" onclick="nav('add')" id="mn-add"><div class="mn-icon">✚</div>Agregar</div>
   </div>
 </nav>
-
-<!-- Firebase SDK (compat - no module needed, works with onclick) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
 firebase.initializeApp({
-  apiKey: "AIzaSyA-I0lTflQAC-f4qXS18MbGUX1TlEAFIxE",
-  authDomain: "camperspot-flota.firebaseapp.com",
-  projectId: "camperspot-flota",
-  storageBucket: "camperspot-flota.firebasestorage.app",
-  messagingSenderId: "82317751682",
-  appId: "1:82317751682:web:b13b45fdb6c68a20cfcb9b"
+  apiKey:"AIzaSyA-I0lTflQAC-f4qXS18MbGUX1TlEAFIxE",
+  authDomain:"camperspot-flota.firebaseapp.com",
+  projectId:"camperspot-flota",
+  storageBucket:"camperspot-flota.firebasestorage.app",
+  messagingSenderId:"82317751682",
+  appId:"1:82317751682:web:b13b45fdb6c68a20cfcb9b"
 });
-const db = firebase.firestore();
-
-document.getElementById('sidebar-logo').src = 'https://raw.githubusercontent.com/miguelduchs-web/camperspot-flota/main/logo.png';
-
-let records = [];
-let currentFilter = 'todos', currentVehicle = null;
-let selectedType = '', selectedCat = '';
-let currentPhoto = null;
-
-const VEHICLES = ['MH SFCX19','MH SFCX20','MH SPBD28','MH SPBD29','MH SDWY74','CR SKY536'];
-const VCOLORS  = ['#e24b4a','#7f77dd','#639922','#5ba4cf','#185fa5','#ba7517'];
-const VTYPES   = ['Motorhome','Motorhome','Motorhome','Motorhome','Motorhome','Casa Rodante'];
+const db=firebase.firestore();
+document.getElementById('sidebar-logo').src='https://raw.githubusercontent.com/miguelduchs-web/camperspot-flota/main/logo.png';
+let records=[],milesData={},currentFilter='todos',currentVehicle=null,selectedType='',selectedCat='',currentPhoto=null;
+const VEHICLES=['MH SFCX19','MH SFCX20','MH SPBD28','MH SPBD29','MH SDWY74','CR SKY536'];
+const VCOLORS=['#e24b4a','#7f77dd','#639922','#5ba4cf','#185fa5','#ba7517'];
+const VTYPES=['Motorhome','Motorhome','Motorhome','Motorhome','Motorhome','Casa Rodante'];
 function vcolor(v){const i=VEHICLES.indexOf(v);return i>=0?VCOLORS[i]:'#888';}
 function vtype(v){const i=VEHICLES.indexOf(v);return i>=0?VTYPES[i]:'';}
-
-function setSyncStatus(state){
-  const dot=document.getElementById('sync-dot');
-  const txt=document.getElementById('sync-text');
-  dot.className='sync-dot'+(state==='saving'?' saving':state==='offline'?' offline':'');
-  txt.textContent=state==='online'?'Sincronizado':state==='saving'?'Guardando...':'Sin conexión';
-}
-
-// Realtime listener
-db.collection('records').orderBy('createdAt','desc').onSnapshot(snap=>{
-  records=snap.docs.map(d=>({id:d.id,...d.data()}));
-  setSyncStatus('online');
-  const active=document.querySelector('.view.active');
-  if(active&&active.id==='view-fleet')renderFleet();
-  if(active&&active.id==='view-records')renderRecords();
-},err=>{setSyncStatus('offline');console.error(err);});
-
-function nav(view,vehicleId){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+view).classList.add('active');
-  ['fleet','records','add'].forEach(k=>{
-    const s=document.getElementById('nav-'+k);
-    const m=document.getElementById('mn-'+k);
-    if(s)s.classList.toggle('active',k===view);
-    if(m)m.classList.toggle('active',k===view);
-  });
-  if(view==='records'){currentVehicle=vehicleId||null;renderRecords();}
-  if(view==='fleet')renderFleet();
-  if(view==='add'){document.getElementById('f-date').value=today();if(vehicleId)document.getElementById('f-vehicle').value=vehicleId;}
-  window.scrollTo(0,0);
-}
-
+function setSyncStatus(state){const dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-text');dot.className='sync-dot'+(state==='saving'?' saving':state==='offline'?' offline':'');txt.textContent=state==='online'?'Sincronizado':state==='saving'?'Guardando...':'Sin conexión';}
+db.collection('records').orderBy('createdAt','desc').onSnapshot(snap=>{records=snap.docs.map(d=>({id:d.id,...d.data()}));setSyncStatus('online');const a=document.querySelector('.view.active');if(a&&a.id==='view-fleet')renderFleet();if(a&&a.id==='view-records')renderRecords();},err=>{setSyncStatus('offline');console.error(err);});
+db.collection('miles').onSnapshot(snap=>{milesData={};snap.docs.forEach(d=>{milesData[d.id.replace(/_/g,' ')]=d.data();});const a=document.querySelector('.view.active');if(a&&a.id==='view-fleet')renderFleet();},err=>{console.error(err);});
+async function saveMiles(vehicle,field,value){const docId=vehicle.replace(/ /g,'_');try{await db.collection('miles').doc(docId).set({[field]:value},{merge:true});if(!milesData[vehicle])milesData[vehicle]={};milesData[vehicle][field]=value;renderFleet();}catch(e){console.error(e);}}
+function nav(view,vehicleId){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+view).classList.add('active');['fleet','records','add'].forEach(k=>{const s=document.getElementById('nav-'+k),m=document.getElementById('mn-'+k);if(s)s.classList.toggle('active',k===view);if(m)m.classList.toggle('active',k===view);});if(view==='records'){currentVehicle=vehicleId||null;renderRecords();}if(view==='fleet')renderFleet();if(view==='add'){document.getElementById('f-date').value=today();if(vehicleId)document.getElementById('f-vehicle').value=vehicleId;}window.scrollTo(0,0);}
 function today(){return new Date().toISOString().split('T')[0];}
 function fmtDate(d){if(!d)return'';if(d&&d.toDate)d=d.toDate().toISOString().split('T')[0];const[y,m,dd]=String(d).split('-');return dd+'/'+m+'/'+y;}
 function fmtKm(k){return k?Number(k).toLocaleString('es-CL')+' km':'';}
-
-function selectChip(group,value){
-  if(group==='type'){
-    selectedType=selectedType===value?'':value;
-    document.querySelectorAll('#chips-type .chip').forEach(c=>c.classList.toggle('selected',c.textContent.trim()===value&&selectedType===value));
-  }else{
-    selectedCat=selectedCat===value?'':value;
-    document.querySelectorAll('#chips-cat .chip').forEach(c=>{
-      const match=value.startsWith('Mecánico')?'🔧 Mecánico':'🏠 Carrocería';
-      c.classList.toggle('selected',c.textContent.trim()===match&&selectedCat===value);
-    });
-  }
-}
-
-function previewPhoto(e){
-  const file=e.target.files[0];if(!file)return;
-  const img=new Image(),url=URL.createObjectURL(file);
-  img.onload=()=>{
-    const MAX=800;let w=img.width,h=img.height;
-    if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-    canvas.getContext('2d').drawImage(img,0,0,w,h);
-    currentPhoto=canvas.toDataURL('image/jpeg',0.7);
-    URL.revokeObjectURL(url);
-    document.getElementById('photo-preview-img').src=currentPhoto;
-    document.getElementById('photo-preview').style.display='block';
-    document.getElementById('photo-clear').style.display='block';
-    document.querySelector('.photo-upload-label').textContent='📷 Foto cargada — toca para cambiar';
-  };img.src=url;
-}
-function clearPhoto(){
-  currentPhoto=null;document.getElementById('f-photo').value='';
-  document.getElementById('photo-preview').style.display='none';
-  document.getElementById('photo-clear').style.display='none';
-  document.querySelector('.photo-upload-label').textContent='📷 Toca para tomar foto o elegir de la galería';
-}
+function selectChip(group,value){if(group==='type'){selectedType=selectedType===value?'':value;document.querySelectorAll('#chips-type .chip').forEach(c=>c.classList.toggle('selected',c.textContent.trim()===value&&selectedType===value));}else{selectedCat=selectedCat===value?'':value;document.querySelectorAll('#chips-cat .chip').forEach(c=>{const match=value.startsWith('Mecánico')?'🔧 Mecánico':'🏠 Carrocería';c.classList.toggle('selected',c.textContent.trim()===match&&selectedCat===value);});}}
+function previewPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{const MAX=800;let w=img.width,h=img.height;if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);currentPhoto=canvas.toDataURL('image/jpeg',0.7);URL.revokeObjectURL(url);document.getElementById('photo-preview-img').src=currentPhoto;document.getElementById('photo-preview').style.display='block';document.getElementById('photo-clear').style.display='block';document.querySelector('.photo-upload-label').textContent='📷 Foto cargada — toca para cambiar';};img.src=url;}
+function clearPhoto(){currentPhoto=null;document.getElementById('f-photo').value='';document.getElementById('photo-preview').style.display='none';document.getElementById('photo-clear').style.display='none';document.querySelector('.photo-upload-label').textContent='📷 Toca para tomar foto o elegir de la galería';}
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
-
-function renderFleet(){
-  const pending=records.filter(r=>r.status==='Pendiente').length;
-  const done=records.filter(r=>r.status==='Completado').length;
-  const bp=document.getElementById('badge-pending');
-  if(pending>0){bp.textContent=pending;bp.style.display='';}else bp.style.display='none';
-  document.getElementById('fleet-metrics').innerHTML=
-    '<div class="metric"><div class="metric-label">Total registros</div><div class="metric-val mv-neutral">'+records.length+'</div></div>'+
-    '<div class="metric"><div class="metric-label">Pendientes</div><div class="metric-val mv-pending">'+pending+'</div></div>'+
-    '<div class="metric"><div class="metric-label">Completados</div><div class="metric-val mv-done">'+done+'</div></div>';
-  document.getElementById('fleet-grid').innerHTML=VEHICLES.map(v=>{
-    const vr=records.filter(r=>r.vehicle===v);
-    const vp=vr.filter(r=>r.status==='Pendiente').length;
-    const vd=vr.filter(r=>r.status==='Completado').length;
-    const pills=[
-      vp?'<span class="pill pill-pending">'+vp+' pendiente'+(vp>1?'s':'')+'</span>':'',
-      vd?'<span class="pill pill-done">'+vd+' completado'+(vd>1?'s':'')+'</span>':'',
-      !vr.length?'<span class="pill pill-neutral">Sin registros</span>':'',
-    ].filter(Boolean).join('');
-    return '<div class="vcard" onclick="nav(\'records\',\''+v+'\')">'+
-      '<div class="vcard-top"><div class="vcard-dot" style="background:'+vcolor(v)+'"></div>'+
-      '<div><div class="vcard-name">'+v+'</div><div class="vcard-type">'+vtype(v)+'</div></div></div>'+
-      '<div class="vcard-pills">'+pills+'</div></div>';
-  }).join('');
-}
-
-function setFilter(f){
-  currentFilter=f;
-  const labels={'todos':'Todos','Pendiente':'Pendientes','Completado':'Completados'};
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.textContent===labels[f]));
-  renderRecords();
-}
-
-function renderRecords(){
-  let list=currentVehicle?records.filter(r=>r.vehicle===currentVehicle):[...records];
-  document.getElementById('records-title').textContent=currentVehicle?currentVehicle+' · Registros':'Registros';
-  document.getElementById('records-sub').textContent=currentVehicle?vtype(currentVehicle):'Todos los vehículos';
-  if(currentFilter!=='todos')list=list.filter(r=>r.status===currentFilter);
-  list.sort((a,b)=>(a.status==='Pendiente'?0:1)-(b.status==='Pendiente'?0:1));
-  const el=document.getElementById('records-list');
-  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Sin registros'+(currentFilter!=='todos'?' con este estado':'')+'</div>';return;}
-  el.innerHTML=list.map(r=>{
-    const meta=[
-      r.date?'<span>📅 '+fmtDate(r.date)+'</span>':'',
-      r.km?'<span>🛣 '+fmtKm(r.km)+'</span>':'',
-      r.shop?'<span>🔧 '+r.shop+'</span>':'',
-      r.type?'<span>'+r.type+'</span>':'',
-      r.cat?'<span>'+(r.cat.startsWith('Mecánico')?'🔧 Mecánico':'🏠 Carrocería')+'</span>':'',
-    ].filter(Boolean).join('');
-    const vPill=!currentVehicle?'<span style="display:inline-flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:'+vcolor(r.vehicle)+';display:inline-block"></span><span style="font-size:11px;color:var(--muted)">'+r.vehicle+'</span></span><br>':'';
-    const photo=r.photo?'<div class="record-photo"><img src="'+r.photo+'" alt="foto" onclick="openLightbox(this.src)"></div>':'';
-    const doneBtn=r.status==='Pendiente'?'<button class="btn-xs done-btn" onclick="markDone(\''+r.id+'\')">✓ Completado</button>':'';
-    return '<div class="record"><div class="record-top"><div style="flex:1">'+vPill+
-      '<div class="record-title">'+r.desc+'</div>'+
-      (meta?'<div class="record-meta">'+meta+'</div>':'')+
-      (r.notes?'<div class="record-notes">'+r.notes+'</div>':'')+photo+'</div>'+
-      '<span class="status s-'+r.status.toLowerCase()+'">'+r.status+'</span></div>'+
-      '<div class="record-actions">'+doneBtn+'<button class="btn-xs del-btn" onclick="deleteRecord(\''+r.id+'\')">Eliminar</button></div></div>';
-  }).join('');
-}
-
-function toggleOptional(){
-  const el=document.getElementById('optional-fields');
-  const open=el.classList.toggle('open');
-  document.getElementById('opt-arrow').textContent=open?'▾':'▸';
-}
-
-async function saveRecord(){
-  const vehicle=document.getElementById('f-vehicle').value;
-  const desc=document.getElementById('f-desc').value.trim();
-  const status=document.getElementById('f-status').value;
-  if(!vehicle){toast('Selecciona un vehículo',true);return;}
-  if(!desc){toast('Escribe una descripción',true);return;}
-  const btn=document.getElementById('save-btn');
-  const msg=document.getElementById('saving-msg');
-  btn.disabled=true;msg.style.display='block';
-  setSyncStatus('saving');
-  try{
-    await db.collection('records').add({
-      vehicle,desc,status,
-      type:selectedType,cat:selectedCat,
-      km:document.getElementById('f-km').value,
-      date:document.getElementById('f-date').value,
-      shop:document.getElementById('f-shop').value.trim(),
-      notes:document.getElementById('f-notes').value.trim(),
-      photo:currentPhoto||null,
-      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    ['f-km','f-shop','f-notes'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('f-vehicle').value='';
-    document.getElementById('f-desc').value='';
-    document.getElementById('f-status').value='Pendiente';
-    document.getElementById('f-date').value=today();
-    selectedType='';selectedCat='';
-    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
-    document.getElementById('optional-fields').classList.remove('open');
-    document.getElementById('opt-arrow').textContent='▸';
-    clearPhoto();
-    toast('Registro guardado ✓');
-    nav('fleet');
-  }catch(e){toast('Error al guardar',true);setSyncStatus('offline');console.error(e);}
-  finally{btn.disabled=false;msg.style.display='none';}
-}
-
-async function markDone(id){
-  try{await db.collection('records').doc(id).update({status:'Completado'});toast('Marcado como completado ✓');}
-  catch(e){toast('Error al actualizar',true);}
-}
-async function deleteRecord(id){
-  if(!confirm('¿Eliminar este registro?'))return;
-  try{await db.collection('records').doc(id).delete();toast('Registro eliminado');}
-  catch(e){toast('Error al eliminar',true);}
-}
-
-function toast(msg,error=false){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className=error?'error':'';
-  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
-}
-
+function renderFleet(){const pending=records.filter(r=>r.status==='Pendiente').length,done=records.filter(r=>r.status==='Completado').length,bp=document.getElementById('badge-pending');if(pending>0){bp.textContent=pending;bp.style.display='';}else bp.style.display='none';document.getElementById('fleet-metrics').innerHTML='<div class="metric"><div class="metric-label">Total registros</div><div class="metric-val mv-neutral">'+records.length+'</div></div><div class="metric"><div class="metric-label">Pendientes</div><div class="metric-val mv-pending">'+pending+'</div></div><div class="metric"><div class="metric-label">Completados</div><div class="metric-val mv-done">'+done+'</div></div>';document.getElementById('fleet-grid').innerHTML=VEHICLES.map(v=>{const vr=records.filter(r=>r.vehicle===v),vp=vr.filter(r=>r.status==='Pendiente').length,vd=vr.filter(r=>r.status==='Completado').length;const pills=[vp?'<span class="pill pill-pending">'+vp+' pendiente'+(vp>1?'s':'')+'</span>':'',vd?'<span class="pill pill-done">'+vd+' completado'+(vd>1?'s':'')+'</span>':'',!vr.length?'<span class="pill pill-neutral">Sin registros</span>':''].filter(Boolean).join('');const md=milesData[v]||{},cur=md.current?Number(md.current):null,nxt=md.next?Number(md.next):null,rem=(cur!==null&&nxt!==null)?nxt-cur:null,remClass=rem===null?'':rem<=0?'mr-urgent':rem<=500?'mr-warn':'mr-ok',remText=rem===null?'— ingresa las millas':rem<=0?'⚠️ Mantención vencida':'🛣 Faltan '+rem.toLocaleString('es-CL')+' mi';return '<div class="vcard"><div class="vcard-top" onclick="nav(\'records\',\''+v+'\')" style="cursor:pointer"><div class="vcard-dot" style="background:'+vcolor(v)+'"></div><div><div class="vcard-name">'+v+'</div><div class="vcard-type">'+vtype(v)+'</div></div></div><div class="vcard-pills">'+pills+'</div><div class="vcard-miles"><div class="miles-field"><div class="miles-label">Millas actuales</div><input class="miles-input" type="number" placeholder="Ej: 45000" value="'+(md.current||'')+'" onchange="saveMiles(\''+v+'\',\'current\',this.value)" onclick="event.stopPropagation()"></div><div class="miles-field"><div class="miles-label">Próxima mantención</div><input class="miles-input" type="number" placeholder="Ej: 52500" value="'+(md.next||'')+'" onchange="saveMiles(\''+v+'\',\'next\',this.value)" onclick="event.stopPropagation()"></div></div><div class="miles-remaining '+remClass+'">'+remText+'</div></div>';}).join('');}
+function setFilter(f){currentFilter=f;const labels={'todos':'Todos','Pendiente':'Pendientes','Completado':'Completados'};document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.textContent===labels[f]));renderRecords();}
+function renderRecords(){let list=currentVehicle?records.filter(r=>r.vehicle===currentVehicle):[...records];document.getElementById('records-title').textContent=currentVehicle?currentVehicle+' · Registros':'Registros';document.getElementById('records-sub').textContent=currentVehicle?vtype(currentVehicle):'Todos los vehículos';if(currentFilter!=='todos')list=list.filter(r=>r.status===currentFilter);list.sort((a,b)=>(a.status==='Pendiente'?0:1)-(b.status==='Pendiente'?0:1));const el=document.getElementById('records-list');if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Sin registros'+(currentFilter!=='todos'?' con este estado':'')+'</div>';return;}el.innerHTML=list.map(r=>{const meta=[r.date?'<span>📅 '+fmtDate(r.date)+'</span>':'',r.km?'<span>🛣 '+fmtKm(r.km)+'</span>':'',r.shop?'<span>🔧 '+r.shop+'</span>':'',r.type?'<span>'+r.type+'</span>':'',r.cat?'<span>'+(r.cat.startsWith('Mecánico')?'🔧 Mecánico':'🏠 Carrocería')+'</span>':''].filter(Boolean).join('');const vPill=!currentVehicle?'<span style="display:inline-flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:'+vcolor(r.vehicle)+';display:inline-block"></span><span style="font-size:11px;color:var(--muted)">'+r.vehicle+'</span></span><br>':'';const photo=r.photo?'<div class="record-photo"><img src="'+r.photo+'" alt="foto" onclick="openLightbox(this.src)"></div>':'';const doneBtn=r.status==='Pendiente'?'<button class="btn-xs done-btn" onclick="markDone(\''+r.id+'\')">✓ Completado</button>':'';return '<div class="record"><div class="record-top"><div style="flex:1">'+vPill+'<div class="record-title">'+r.desc+'</div>'+(meta?'<div class="record-meta">'+meta+'</div>':'')+(r.notes?'<div class="record-notes">'+r.notes+'</div>':'')+photo+'</div><span class="status s-'+r.status.toLowerCase()+'">'+r.status+'</span></div><div class="record-actions">'+doneBtn+'<button class="btn-xs del-btn" onclick="deleteRecord(\''+r.id+'\')">Eliminar</button></div></div>';}).join('');}
+function toggleOptional(){const el=document.getElementById('optional-fields'),open=el.classList.toggle('open');document.getElementById('opt-arrow').textContent=open?'▾':'▸';}
+async function saveRecord(){const vehicle=document.getElementById('f-vehicle').value,desc=document.getElementById('f-desc').value.trim(),status=document.getElementById('f-status').value;if(!vehicle){toast('Selecciona un vehículo',true);return;}if(!desc){toast('Escribe una descripción',true);return;}const btn=document.getElementById('save-btn'),msg=document.getElementById('saving-msg');btn.disabled=true;msg.style.display='block';setSyncStatus('saving');try{await db.collection('records').add({vehicle,desc,status,type:selectedType,cat:selectedCat,km:document.getElementById('f-km').value,date:document.getElementById('f-date').value,shop:document.getElementById('f-shop').value.trim(),notes:document.getElementById('f-notes').value.trim(),photo:currentPhoto||null,createdAt:firebase.firestore.FieldValue.serverTimestamp()});['f-km','f-shop','f-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-vehicle').value='';document.getElementById('f-desc').value='';document.getElementById('f-status').value='Pendiente';document.getElementById('f-date').value=today();selectedType='';selectedCat='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));document.getElementById('optional-fields').classList.remove('open');document.getElementById('opt-arrow').textContent='▸';clearPhoto();toast('Registro guardado ✓');nav('fleet');}catch(e){toast('Error al guardar',true);setSyncStatus('offline');console.error(e);}finally{btn.disabled=false;msg.style.display='none';}}
+async function markDone(id){try{await db.collection('records').doc(id).update({status:'Completado'});toast('Marcado como completado ✓');}catch(e){toast('Error al actualizar',true);}}
+async function deleteRecord(id){if(!confirm('¿Eliminar este registro?'))return;try{await db.collection('records').doc(id).delete();toast('Registro eliminado');}catch(e){toast('Error al eliminar',true);}}
+function toast(msg,error=false){const t=document.getElementById('toast');t.textContent=msg;t.className=error?'error':'';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 document.getElementById('f-date').value=today();
 renderFleet();
 </script>
 </body>
 </html>
-
